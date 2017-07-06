@@ -235,6 +235,35 @@ describe('S3rver Tests', function () {
     });
   });
 
+  it('should store a text object with some custom metadata when using presigned upload url', function (done) {
+    var params = {
+      Bucket: buckets[0], Key: 'textmetadata2', ContentType: 'text/plain', Metadata: {
+        someKey: 'value', 
+      }
+    };
+    var url = s3Client.getSignedUrl('putObject', params);
+    request.put({
+      url,
+      body: 'Hello'
+    }, function (err, data, body) {
+      // /"[a-fA-F0-9]{32}"/.test(data.ETag).should.equal(true);
+      if (err) {
+        return done(err);
+      }
+      done();
+    });
+  });
+
+  it('should return a text object with some custom metadata', function (done) {
+    s3Client.getObject({Bucket: buckets[0], Key: 'textmetadata2'}, function (err, object) {
+      if (err) {
+        return done(err);
+      }
+      object.Metadata.somekey.should.equal('value');
+      done();
+    });
+  });
+
   it('should store an image in a bucket', function (done) {
     var file = path.join(__dirname, 'resources/image.jpg');
     fs.readFile(file, function (err, data) {
